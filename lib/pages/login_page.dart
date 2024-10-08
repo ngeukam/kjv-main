@@ -53,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
           duration: Duration(seconds: 3),
           snackPosition: SnackPosition.TOP,
         );
-        Get.to(() => const BibleOptionsPage(), transition: Transition.rightToLeft);
+        Get.to(() => BibleOptionsPage(), transition: Transition.rightToLeft);
       }
     } catch (e) {
       showToast("Erreur de connexion. Vérifiez vos identifiants.");
@@ -104,50 +104,88 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   SizedBox(height: 20),
-                  // Champ Email
-                  TextField(
-                    controller: emailController,
-                    style: TextStyle(color: Colors.white), // Texte en blanc
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.email, color: Colors.white),
-                      labelText: 'E-mail',
-                      labelStyle: TextStyle(color: Colors.white),
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.2),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  // Champ Mot de passe
-                  TextField(
-                    controller: passwordController,
-                    style: TextStyle(color: Colors.white), // Texte en blanc
-                    obscureText: _obscurePassword,
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.lock, color: Colors.white),
-                      labelText: 'Mot de passe',
-                      labelStyle: TextStyle(color: Colors.white),
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.2),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
-                      ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                          color: Colors.white,
+                  // Limiter la largeur des champs à 300
+                  SizedBox(
+                    width: 300, // Largeur fixe de 300
+                    child: Column(
+                      children: [
+                        // Champ Email
+                        TextField(
+                          controller: emailController,
+                          style: TextStyle(color: Colors.white), // Texte en blanc
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: InputDecoration(
+                            prefixIcon: Icon(Icons.email, color: Colors.white),
+                            labelText: 'E-mail',
+                            labelStyle: TextStyle(color: Colors.white),
+                            filled: true,
+                            fillColor: Colors.white.withOpacity(0.2),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword; // Bascule l'état
-                          });
-                        },
-                      ),
+                        SizedBox(height: 10),
+                        // Champ Mot de passe
+                        TextField(
+                          controller: passwordController,
+                          style: TextStyle(color: Colors.white), // Texte en blanc
+                          obscureText: _obscurePassword,
+                          decoration: InputDecoration(
+                            prefixIcon: Icon(Icons.lock, color: Colors.white),
+                            labelText: 'Mot de passe',
+                            labelStyle: TextStyle(color: Colors.white),
+                            filled: true,
+                            fillColor: Colors.white.withOpacity(0.2),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide.none,
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                                color: Colors.white,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword; // Bascule l'état
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        // Lien Mot de passe oublié
+                        GestureDetector(
+                          onTap: () {
+                            showToast("Fonctionnalité à implémenter !");
+                          },
+                          child: Text(
+                            'Mot de passe oublié ?',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        // Lien S'enregistrer
+                        GestureDetector(
+                          onTap: () {
+                            Get.to(() => RegisterPage(), transition: Transition.rightToLeft);
+                          },
+                          child: Text(
+                            'Pas de compte ? S\'enregistrer',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   SizedBox(height: 20),
@@ -168,37 +206,6 @@ class _LoginPageState extends State<LoginPage> {
                     child: Text(
                       'Se Connecter',
                       style: TextStyle(fontSize: 18, color: Colors.white),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  // Lien Mot de passe oublié
-                  GestureDetector(
-                    onTap: () {
-                      // Logique pour gérer la récupération du mot de passe
-                      showToast("Fonctionnalité à implémenter !");
-                    },
-                    child: Text(
-                      'Mot de passe oublié ?',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  // Lien S'inscrire
-                  GestureDetector(
-                    onTap: () {
-                      Get.to(() => RegisterPage(), transition: Transition.rightToLeft);
-                    },
-                    child: Text(
-                      'S\'enregistrer',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        decoration: TextDecoration.underline,
-                      ),
                     ),
                   ),
                 ],

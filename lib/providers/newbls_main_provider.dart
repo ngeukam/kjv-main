@@ -5,7 +5,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 // MainProvider class extends ChangeNotifier for state management
 
-class MainProvider extends ChangeNotifier {
+class NewBlsMainProvider extends ChangeNotifier {
   // Controllers and Listeners for managing scroll positions and items
   ItemScrollController itemScrollController = ItemScrollController();
   ScrollOffsetController scrollOffsetController = ScrollOffsetController();

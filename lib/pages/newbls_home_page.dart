@@ -1,5 +1,6 @@
-import 'package:BibleEngama/services/fetch_books.dart';
-import 'package:BibleEngama/services/fetch_verses.dart';
+import 'package:BibleEngama/pages/newbls_book_page.dart';
+import 'package:BibleEngama/services/newbls_fetch_books.dart';
+import 'package:BibleEngama/services/newbls_fetch_verses.dart';
 import 'package:BibleEngama/services/save_current_index.dart';
 import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +8,7 @@ import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'package:BibleEngama/models/verse.dart';
 import 'package:BibleEngama/pages/books_page.dart';
-import 'package:BibleEngama/providers/main_provider.dart';
+import 'package:BibleEngama/providers/newbls_main_provider.dart';
 import 'package:BibleEngama/widgets/verse_widget.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -15,15 +16,16 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../services/read_last_index.dart';
 import 'search_page.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class NewblsHomePage extends StatefulWidget {
+  const NewblsHomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<NewblsHomePage> createState() => _NewblsHomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _NewblsHomePageState extends State<NewblsHomePage> {
   bool _loading = true;
+  bool _isDataLoaded = false;
   @override
   void initState() {
     // We will resume to the last position the user was
@@ -31,35 +33,33 @@ class _HomePageState extends State<HomePage> {
     Future.delayed(
       const Duration(milliseconds: 100),
           () async {
-        MainProvider mainProvider =
-        Provider.of<MainProvider>(context, listen: false);
-        mainProvider.itemPositionsListener.itemPositions.addListener(
+        NewBlsMainProvider newBlsMainProvider = Provider.of<NewBlsMainProvider>(context, listen: false);
+        newBlsMainProvider.itemPositionsListener.itemPositions.addListener(
               () {
-            int index = mainProvider
-                .itemPositionsListener.itemPositions.value.last.index;
+            int index = newBlsMainProvider.itemPositionsListener.itemPositions.value.last.index;
 
             SaveCurrentIndex.execute(
-                index: mainProvider
-                    .itemPositionsListener.itemPositions.value.first.index);
+                index: newBlsMainProvider.itemPositionsListener.itemPositions.value.first.index
+            );
 
-            Verse currentVerse = mainProvider.verses[index];
+            Verse currentVerse = newBlsMainProvider.verses[index];
 
-            if (mainProvider.currentVerse == null) {
-              mainProvider.updateCurrentVerse(verse: mainProvider.verses.first);
+            if (newBlsMainProvider.currentVerse == null) {
+              newBlsMainProvider.updateCurrentVerse(verse: newBlsMainProvider.verses.first);
             }
 
-            Verse previousVerse = mainProvider.currentVerse == null
-                ? mainProvider.verses.first
-                : mainProvider.currentVerse!;
+            Verse previousVerse = newBlsMainProvider.currentVerse == null
+                ? newBlsMainProvider.verses.first
+                : newBlsMainProvider.currentVerse!;
 
             if (currentVerse.book != previousVerse.book) {
-              mainProvider.updateCurrentVerse(verse: currentVerse);
+              newBlsMainProvider.updateCurrentVerse(verse: currentVerse);
             }
           },
         );
-        await FetchVerses.execute(mainProvider: mainProvider).then(
+        await NewBlsFetchVerses.execute(newBlsMainProvider: newBlsMainProvider).then(
               (_) async {
-            await FetchBooks.execute(mainProvider: mainProvider)
+            await NewBlsFetchBooks.execute(newBlsMainProvider: newBlsMainProvider)
                 .then((_) => setState(() {
               _loading = false;
             }));
@@ -69,7 +69,7 @@ class _HomePageState extends State<HomePage> {
         await ReadLastIndex.execute().then(
               (index) {
             if (index != null) {
-              mainProvider.scrollToIndex(index: index);
+              newBlsMainProvider.scrollToIndex(index: index);
             }
           },
         );
@@ -83,11 +83,11 @@ class _HomePageState extends State<HomePage> {
         .map((e) => " [${e.book} ${e.chapter}:${e.verse}] ${e.text.trim()}")
         .join();
 
-    return "$result [Ancien BLS 1910 Pro]";
+    return "$result [Nouveau BLS 1910 Pro]";
   }
 
   Widget build(BuildContext context) {
-    return Consumer<MainProvider>(builder: (context, mainProvider, child) {
+    return Consumer<NewBlsMainProvider>(builder: (context, mainProvider, child) {
       // Récupération des données du provider
       List<Verse> verses = mainProvider.verses;
       Verse? currentVerse = mainProvider.currentVerse;
@@ -101,6 +101,7 @@ class _HomePageState extends State<HomePage> {
       if (verses.isEmpty) {
         return Center(child: Text('Aucun verset disponible', style: TextStyle(color: Colors.black, fontSize: 18),));
       }
+
       return Scaffold(
         appBar: AppBar(
           title: currentVerse == null || isSelected
@@ -108,7 +109,7 @@ class _HomePageState extends State<HomePage> {
               : GestureDetector(
             onTap: () {
               Get.to(
-                    () => BooksPage(
+                    () => NewblsBooksPage(
                   chapterIdx: currentVerse.chapter,
                   bookIdx: currentVerse.book,
                 ),
@@ -164,7 +165,7 @@ class _HomePageState extends State<HomePage> {
           backgroundColor: Colors.transparent,
           onPressed: () {
             Get.to(
-                  () => BooksPage(
+                  () => NewblsBooksPage(
                 chapterIdx: currentVerse?.chapter ?? 1,
                 bookIdx: currentVerse?.book ?? '1',
               ),

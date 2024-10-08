@@ -7,16 +7,18 @@ import 'package:provider/provider.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';
 import 'package:expandable/expandable.dart';
 
-class BooksPage extends StatefulWidget {
+import '../providers/newbls_main_provider.dart';
+
+class NewblsBooksPage extends StatefulWidget {
   final int chapterIdx;
   final String bookIdx;
-  const BooksPage({super.key, required this.chapterIdx, required this.bookIdx});
+  const NewblsBooksPage({super.key, required this.chapterIdx, required this.bookIdx});
 
   @override
-  State<BooksPage> createState() => _BooksPageState();
+  State<NewblsBooksPage> createState() => _NewblsBooksPageState();
 }
 
-class _BooksPageState extends State<BooksPage> {
+class _NewblsBooksPageState extends State<NewblsBooksPage> {
   final AutoScrollController _autoScrollController = AutoScrollController();
   List<Book> books = [];
   Book? currentBook;
@@ -25,7 +27,7 @@ class _BooksPageState extends State<BooksPage> {
   @override
   void initState() {
     super.initState();
-    MainProvider mainProvider = Provider.of<MainProvider>(context, listen: false);
+    NewBlsMainProvider mainProvider = Provider.of<NewBlsMainProvider>(context, listen: false);
     books = mainProvider.books;
     currentBook = mainProvider.books.firstWhere(
           (element) => element.title == mainProvider.currentVerse!.book,
@@ -47,11 +49,11 @@ class _BooksPageState extends State<BooksPage> {
           book.chapters.any((chapter) => chapter.title.toString().toLowerCase().contains(searchQuery.toLowerCase()));
     }).toList();
 
-    return Consumer<MainProvider>(
+    return Consumer<NewBlsMainProvider>(
       builder: (context, mainProvider, child) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text("Ancien Testament"),
+            title: const Text("Nouveau Testament"),
             //centerTitle: true,
             elevation: 4,
           ),

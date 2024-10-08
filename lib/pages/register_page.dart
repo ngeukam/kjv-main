@@ -115,97 +115,105 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   SizedBox(height: 20),
                   // Champ Nom
-                  TextField(
-                    controller: nameController,
-                    style: TextStyle(color: Colors.white),  // Texte en blanc
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.person, color: Colors.white),
-                      labelText: 'Nom',
-                      labelStyle: TextStyle(color: Colors.white),
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.2),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  // Champ Email
-                  TextField(
-                    controller: emailController,
-                    style: TextStyle(color: Colors.white),  // Texte en blanc
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.email, color: Colors.white),
-                      labelText: 'E-mail',
-                      labelStyle: TextStyle(color: Colors.white),
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.2),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  // Champ Mot de passe
-                  TextField(
-                    controller: passwordController,
-                    style: TextStyle(color: Colors.white),  // Texte en blanc
-                    obscureText: _obscurePassword,
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.lock, color: Colors.white),
-                      labelText: 'Mot de passe',
-                      labelStyle: TextStyle(color: Colors.white),
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.2),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
-                      ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                          color: Colors.white,
+              SizedBox(
+                width: 300,
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      style: TextStyle(color: Colors.white),  // Texte en blanc
+                      decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.person, color: Colors.white),
+                        labelText: 'Nom',
+                        labelStyle: TextStyle(color: Colors.white),
+                        filled: true,
+                        fillColor: Colors.white.withOpacity(0.2),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword; // Bascule l'état
-                          });
-                        },
                       ),
                     ),
-                  ),
-                  SizedBox(height: 10),
-                  // Champ Confirmation du mot de passe
-                  TextField(
-                    controller: confirmPasswordController,
-                    style: TextStyle(color: Colors.white),  // Texte en blanc
-                    obscureText: _obscureConfirmPassword,
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.lock, color: Colors.white),
-                      labelText: 'Confirmation mot de passe',
-                      labelStyle: TextStyle(color: Colors.white),
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.2),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
-                      ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
-                          color: Colors.white,
+                    SizedBox(height: 10),
+                    // Champ Email
+                    TextField(
+                      controller: emailController,
+                      style: TextStyle(color: Colors.white),  // Texte en blanc
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.email, color: Colors.white),
+                        labelText: 'E-mail',
+                        labelStyle: TextStyle(color: Colors.white),
+                        filled: true,
+                        fillColor: Colors.white.withOpacity(0.2),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureConfirmPassword = !_obscureConfirmPassword; // Bascule l'état
-                          });
-                        },
                       ),
                     ),
-                  ),
+                    SizedBox(height: 10),
+                    // Champ Mot de passe
+                    TextField(
+                      controller: passwordController,
+                      style: TextStyle(color: Colors.white),  // Texte en blanc
+                      obscureText: _obscurePassword,
+                      decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.lock, color: Colors.white),
+                        labelText: 'Mot de passe',
+                        labelStyle: TextStyle(color: Colors.white),
+                        filled: true,
+                        fillColor: Colors.white.withOpacity(0.2),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                            color: Colors.white,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword; // Bascule l'état
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    // Champ Confirmation du mot de passe
+                    TextField(
+                      controller: confirmPasswordController,
+                      style: TextStyle(color: Colors.white),  // Texte en blanc
+                      obscureText: _obscureConfirmPassword,
+                      decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.lock, color: Colors.white),
+                        labelText: 'Confirmation mot de passe',
+                        labelStyle: TextStyle(color: Colors.white),
+                        filled: true,
+                        fillColor: Colors.white.withOpacity(0.2),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                            color: Colors.white,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureConfirmPassword = !_obscureConfirmPassword; // Bascule l'état
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              ),
+
                   SizedBox(height: 20),
                   // Bouton S'inscrire
                   _loading

@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginRegisterService {
   //final FlutterSecureStorage storage = FlutterSecureStorage();
-  static const String baseUrl = '';
+  static const String baseUrl = 'https://vmi1929509.contaboserver.net:8450/api/auth';
   //static const String baseUrl = 'http://localhost:5000/api/auth';
   // Change to your API URL
 

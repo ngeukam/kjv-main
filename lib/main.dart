@@ -1,27 +1,39 @@
-import 'package:BibleEngama/pages/bibleoption_page.dart';
+import 'package:BibleEngama/providers/events_provider.dart';
+import 'package:BibleEngama/providers/main_provider.dart';
+import 'package:BibleEngama/providers/newbls_main_provider.dart';
+import 'package:BibleEngama/providers/prayers_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:BibleEngama/pages/login_page.dart';
-import 'package:BibleEngama/services/fetch_books.dart';
-import 'package:BibleEngama/services/fetch_verses.dart';
-import 'package:BibleEngama/services/save_current_index.dart';
-import 'package:provider/provider.dart';
-import 'models/verse.dart';
-import 'providers/main_provider.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';  // Import shared_preferences
+
+import 'pages/events_page.dart';
+import 'pages/gallery.dart';
+import 'pages/home_page.dart';
+import 'pages/newbls_home_page.dart';
+import 'pages/prayer_page.dart';
+import 'pages/register_page.dart';
+import 'pages/bibleoption_page.dart';
+import 'pages/login_page.dart';
 
 void main() {
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (context) => MainProvider())],
+      providers: [
+        ChangeNotifierProvider(create: (context) => MainProvider()),
+        ChangeNotifierProvider(create: (context) => NewBlsMainProvider()),
+        ChangeNotifierProvider(create: (context) => EventProvider()),
+        ChangeNotifierProvider(create: (context) => PrayerProvider()),// Add other providers here
+        // Add more providers as needed
+      ],
       child: const MainApp(),
     ),
   );
 }
 
 class MainApp extends StatefulWidget {
-  const MainApp({super.key});
+  const MainApp({Key? key}) : super(key: key);
 
   @override
   State<MainApp> createState() => _MainAppState();
@@ -33,50 +45,17 @@ class _MainAppState extends State<MainApp> {
   @override
   void initState() {
     super.initState();
-    _initAsync();
-  }
-
-  Future<void> _initAsync() async {
-    MainProvider mainProvider = Provider.of<MainProvider>(context, listen: false);
-    await Future.delayed(const Duration(milliseconds: 100));
-
-    await FetchVerses.execute(mainProvider: mainProvider);
-    await FetchBooks.execute(mainProvider: mainProvider);
-
-    mainProvider.itemPositionsListener.itemPositions.addListener(() {
-      if (mainProvider.verses.isNotEmpty) {
-        int index = mainProvider.itemPositionsListener.itemPositions.value.last.index;
-
-        SaveCurrentIndex.execute(index: index);
-        Verse currentVerse = mainProvider.verses[index];
-
-        if (mainProvider.currentVerse == null) {
-          mainProvider.updateCurrentVerse(verse: mainProvider.verses.first);
-        }
-
-        Verse previousVerse = mainProvider.currentVerse ?? mainProvider.verses.first;
-
-        if (currentVerse.book != previousVerse.book) {
-          mainProvider.updateCurrentVerse(verse: currentVerse);
-        }
-      }
-    });
-
-    await _checkLoginStatus();
-    setState(() {
-      _loading = false;
+    _checkLoginStatus().then((_) {
+      setState(() {
+        _loading = false;
+      });
     });
   }
 
-  Future<void> _checkLoginStatus() async {
-    final prefs = await SharedPreferences.getInstance();  // Get SharedPreferences instance
-    final token = prefs.getString('token') ?? '';  // Retrieve token
-    await Future.delayed(const Duration(milliseconds: 100));
-    if (token.isNotEmpty && _isTokenValid(token)) {
-      Get.offAll(() => BibleOptionsPage());
-    } else {
-      Get.offAll(() => LoginPage());
-    }
+  Future<bool> _checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token') ?? ''; // Retrieve token
+    return token != null && token.isNotEmpty && _isTokenValid(token);
   }
 
   bool _isTokenValid(String token) {
@@ -98,18 +77,46 @@ class _MainAppState extends State<MainApp> {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
+      getPages: _getPages(),
       themeMode: ThemeMode.system,
-      theme: ThemeData(
-        colorSchemeSeed: Colors.red[200],
-        brightness: Brightness.light,
-      ),
-      darkTheme: ThemeData(
-        colorSchemeSeed: Colors.red[200],
-        brightness: Brightness.light,
-      ),
+      theme: _buildThemeData(),
+      darkTheme: _buildThemeData(),
       home: _loading
-          ? const Center(child: CircularProgressIndicator(strokeCap: StrokeCap.round))
-          : const SizedBox.shrink(),
+          ? const Center(child: CircularProgressIndicator())
+          : FutureBuilder<bool>(
+        future: _checkLoginStatus(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasData && snapshot.data == true) {
+            Future.microtask(() => Get.offAllNamed('/BibleOptionsPage'));
+            return const SizedBox();
+          } else {
+            Future.microtask(() => Get.offAllNamed('/LoginPage'));
+            return const SizedBox();
+          }
+        },
+      ),
+    );
+  }
+
+  List<GetPage> _getPages() {
+    return [
+      GetPage(name: '/BibleOptionsPage', page: () => BibleOptionsPage()),
+      GetPage(name: '/HomePage', page: () => HomePage()),
+      GetPage(name: '/NewblsHomePage', page: () => NewblsHomePage()),
+      GetPage(name: '/PrayersPage', page: () => PrayersPage()),
+      GetPage(name: '/EventsPage', page: () => EventsPage()),
+      GetPage(name: '/PhotoGalleryPage', page: () => PhotoGalleryPage()),
+      GetPage(name: '/LoginPage', page: () => LoginPage()),
+      GetPage(name: '/RegisterPage', page: () => RegisterPage()),
+    ];
+  }
+
+  ThemeData _buildThemeData() {
+    return ThemeData(
+      colorSchemeSeed: Colors.white,
+      brightness: Brightness.light,
     );
   }
 }

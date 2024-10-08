@@ -19,4 +19,15 @@ class Verse {
       text: json['text'],
     );
   }
+  @override
+  bool operator == (Object other) {
+    if (identical(this, other)) return true;
+
+    return other is Verse &&
+        other.book == book &&
+        other.chapter == chapter &&
+        other.verse == verse;
+  }
+  @override
+  int get hashCode => book.hashCode ^ chapter.hashCode ^ verse.hashCode;
 }
