@@ -1,3 +1,4 @@
+import 'package:BibleEngama/utils/auth_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BibleEngama/models/book.dart';
@@ -27,13 +28,13 @@ class _NewblsBooksPageState extends State<NewblsBooksPage> {
   @override
   void initState() {
     super.initState();
-    NewBlsMainProvider mainProvider = Provider.of<NewBlsMainProvider>(context, listen: false);
-    books = mainProvider.books;
-    currentBook = mainProvider.books.firstWhere(
-          (element) => element.title == mainProvider.currentVerse!.book,
+    NewBlsMainProvider newBlsMainProvider = Provider.of<NewBlsMainProvider>(context, listen: false);
+    books = newBlsMainProvider.books;
+    currentBook = newBlsMainProvider.books.firstWhere(
+          (element) => element.title == newBlsMainProvider.currentVerse!.book,
     );
 
-    int index = mainProvider.books.indexOf(currentBook!);
+    int index = newBlsMainProvider.books.indexOf(currentBook!);
     _autoScrollController.scrollToIndex(
       index,
       preferPosition: AutoScrollPosition.begin,
@@ -43,6 +44,7 @@ class _NewblsBooksPageState extends State<NewblsBooksPage> {
 
   @override
   Widget build(BuildContext context) {
+    _checkLogin(context); // Vérification de connexion
     // Filtrer les chapitres selon la recherche
     final filteredBooks = books.where((book) {
       return book.title.toLowerCase().contains(searchQuery.toLowerCase()) ||
@@ -50,7 +52,7 @@ class _NewblsBooksPageState extends State<NewblsBooksPage> {
     }).toList();
 
     return Consumer<NewBlsMainProvider>(
-      builder: (context, mainProvider, child) {
+      builder: (context, newBlsMainProvider, child) {
         return Scaffold(
           appBar: AppBar(
             title: const Text("Nouveau Testament"),
@@ -127,19 +129,19 @@ class _NewblsBooksPageState extends State<NewblsBooksPage> {
                                     Chapter chapter = book.chapters[chapterIndex];
                                     return GestureDetector(
                                       onTap: () {
-                                        int idx = mainProvider.verses.indexWhere(
+                                        int idx = newBlsMainProvider.verses.indexWhere(
                                               (element) =>
                                           element.chapter == chapter.title &&
                                               element.book == book.title,
                                         );
-                                        mainProvider.updateCurrentVerse(
-                                          verse: mainProvider.verses.firstWhere(
+                                        newBlsMainProvider.updateCurrentVerse(
+                                          verse: newBlsMainProvider.verses.firstWhere(
                                                 (element) =>
                                             element.chapter == chapter.title &&
                                                 element.book == book.title,
                                           ),
                                         );
-                                        mainProvider.scrollToIndex(index: idx);
+                                        newBlsMainProvider.scrollToIndex(index: idx);
                                         Get.back();
                                       },
                                       child: Container(
@@ -183,5 +185,11 @@ class _NewblsBooksPageState extends State<NewblsBooksPage> {
         );
       },
     );
+  }
+  void _checkLogin(BuildContext context) async {
+    final isLoggedIn = await AuthHelper.checkLoginStatus();
+    if (!isLoggedIn) {
+      Get.offAllNamed('/LoginPage'); // Redirige vers la page de connexion
+    }
   }
 }

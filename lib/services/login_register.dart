@@ -42,18 +42,6 @@ class LoginRegisterService {
       throw Exception('Failed to log in: ${response.body}');
     }
   }
-  /*Future<http.Response> checkToken(String endpoint) async {
-    final token = await storage.read(key: 'token');
-    final response = await http.get(Uri.parse('$baseUrl/$endpoint'), headers: {
-      'Authorization': 'Bearer Token $token',
-    });
-    // Check for unauthorized error (403)
-    if (response.statusCode == 403 || token ==null) {
-      await storage.delete(key: 'token');
-      Get.offAll(() => LoginPage()); // Redirect to LoginPage// Token expired
-    }
-    return response;
-  }*/
 
   Future<void> logout() async {
     try {

@@ -1,3 +1,4 @@
+import 'package:BibleEngama/utils/auth_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BibleEngama/models/book.dart';
@@ -49,6 +50,7 @@ class _BooksPageState extends State<BooksPage> {
 
     return Consumer<MainProvider>(
       builder: (context, mainProvider, child) {
+        _checkLogin(context); // Vérification de connexion
         return Scaffold(
           appBar: AppBar(
             title: const Text("Ancien Testament"),
@@ -68,7 +70,7 @@ class _BooksPageState extends State<BooksPage> {
               ),
               // Couche semi-transparente
               Container(
-                color: Colors.lightBlueAccent.withOpacity(0.5),
+                color: Colors.lightBlue.withOpacity(0.5),
               ),
               // Contenu principal
               Column(
@@ -181,5 +183,11 @@ class _BooksPageState extends State<BooksPage> {
         );
       },
     );
+  }
+  void _checkLogin(BuildContext context) async {
+    final isLoggedIn = await AuthHelper.checkLoginStatus();
+    if (!isLoggedIn) {
+      Get.offAllNamed('/LoginPage'); // Redirige vers la page de connexion
+    }
   }
 }

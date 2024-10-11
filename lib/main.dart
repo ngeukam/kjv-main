@@ -1,4 +1,6 @@
+import 'package:BibleEngama/pages/form_page.dart';
 import 'package:BibleEngama/providers/events_provider.dart';
+import 'package:BibleEngama/providers/form_provider.dart';
 import 'package:BibleEngama/providers/main_provider.dart';
 import 'package:BibleEngama/providers/newbls_main_provider.dart';
 import 'package:BibleEngama/providers/prayers_provider.dart';
@@ -24,7 +26,8 @@ void main() {
         ChangeNotifierProvider(create: (context) => MainProvider()),
         ChangeNotifierProvider(create: (context) => NewBlsMainProvider()),
         ChangeNotifierProvider(create: (context) => EventProvider()),
-        ChangeNotifierProvider(create: (context) => PrayerProvider()),// Add other providers here
+        ChangeNotifierProvider(create: (context) => PrayerProvider()),
+        ChangeNotifierProvider(create: (context) => FormProvider()),// Add other providers here
         // Add more providers as needed
       ],
       child: const MainApp(),
@@ -41,13 +44,15 @@ class MainApp extends StatefulWidget {
 
 class _MainAppState extends State<MainApp> {
   bool _loading = true;
+  bool _isLoggedIn = false;
 
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus().then((_) {
+    _checkLoginStatus().then((isLoggedIn) {
       setState(() {
         _loading = false;
+        _isLoggedIn = isLoggedIn;
       });
     });
   }
@@ -55,7 +60,8 @@ class _MainAppState extends State<MainApp> {
   Future<bool> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token') ?? ''; // Retrieve token
-    return token != null && token.isNotEmpty && _isTokenValid(token);
+    //return token != null && token.isNotEmpty && _isTokenValid(token);
+    return token.isNotEmpty && _isTokenValid(token);
   }
 
   bool _isTokenValid(String token) {
@@ -83,20 +89,9 @@ class _MainAppState extends State<MainApp> {
       darkTheme: _buildThemeData(),
       home: _loading
           ? const Center(child: CircularProgressIndicator())
-          : FutureBuilder<bool>(
-        future: _checkLoginStatus(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasData && snapshot.data == true) {
-            Future.microtask(() => Get.offAllNamed('/BibleOptionsPage'));
-            return const SizedBox();
-          } else {
-            Future.microtask(() => Get.offAllNamed('/LoginPage'));
-            return const SizedBox();
-          }
-        },
-      ),
+          : _isLoggedIn
+          ? BibleOptionsPage() // Redirection si connecté
+          : LoginPage(), // Redirection si non connecté
     );
   }
 
@@ -108,6 +103,7 @@ class _MainAppState extends State<MainApp> {
       GetPage(name: '/PrayersPage', page: () => PrayersPage()),
       GetPage(name: '/EventsPage', page: () => EventsPage()),
       GetPage(name: '/PhotoGalleryPage', page: () => PhotoGalleryPage()),
+      GetPage(name: '/TopicPage', page: () => FormPage()),
       GetPage(name: '/LoginPage', page: () => LoginPage()),
       GetPage(name: '/RegisterPage', page: () => RegisterPage()),
     ];

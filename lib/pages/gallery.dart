@@ -1,4 +1,6 @@
+import 'package:BibleEngama/utils/auth_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 
 class PhotoGalleryPage extends StatelessWidget {
@@ -47,6 +49,7 @@ class PhotoItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    _checkLogin(context);
     return GestureDetector(
       onTap: () {
         // Action lors du clic sur l'image
@@ -94,15 +97,19 @@ class PhotoItem extends StatelessWidget {
   void _sharePhoto(String url) {
     Share.share('Check out this cool photo: $url');
   }
+  void _checkLogin(BuildContext context) async {
+    final isLoggedIn = await AuthHelper.checkLoginStatus();
+    if (!isLoggedIn) {
+      Get.offAllNamed('/LoginPage'); // Redirige vers la page de connexion
+    }
+  }
 }
 
 // Page pour zoomer sur la photo
 class PhotoZoomPage extends StatelessWidget {
   final String photoUrl;
   final int index;
-
   PhotoZoomPage({required this.photoUrl, required this.index});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

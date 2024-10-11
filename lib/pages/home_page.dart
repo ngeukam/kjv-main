@@ -1,6 +1,7 @@
 import 'package:BibleEngama/services/fetch_books.dart';
 import 'package:BibleEngama/services/fetch_verses.dart';
 import 'package:BibleEngama/services/save_current_index.dart';
+import 'package:BibleEngama/utils/auth_helper.dart';
 import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -24,60 +25,47 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool _loading = true;
+
   @override
   void initState() {
-    // We will resume to the last position the user was
-    // Delayed execution to allow the UI to build before scrolling
+    super.initState();
     Future.delayed(
       const Duration(milliseconds: 100),
           () async {
-        MainProvider mainProvider =
-        Provider.of<MainProvider>(context, listen: false);
-        mainProvider.itemPositionsListener.itemPositions.addListener(
-              () {
-            int index = mainProvider
-                .itemPositionsListener.itemPositions.value.last.index;
+        MainProvider mainProvider = Provider.of<MainProvider>(context, listen: false);
+        mainProvider.itemPositionsListener.itemPositions.addListener(() {
+          int index = mainProvider.itemPositionsListener.itemPositions.value.last.index;
+          SaveCurrentIndex.execute(index: mainProvider.itemPositionsListener.itemPositions.value.first.index);
+          Verse currentVerse = mainProvider.verses[index];
 
-            SaveCurrentIndex.execute(
-                index: mainProvider
-                    .itemPositionsListener.itemPositions.value.first.index);
+          if (mainProvider.currentVerse == null) {
+            mainProvider.updateCurrentVerse(verse: mainProvider.verses.first);
+          }
 
-            Verse currentVerse = mainProvider.verses[index];
+          Verse previousVerse = mainProvider.currentVerse ?? mainProvider.verses.first;
 
-            if (mainProvider.currentVerse == null) {
-              mainProvider.updateCurrentVerse(verse: mainProvider.verses.first);
-            }
+          if (currentVerse.book != previousVerse.book) {
+            mainProvider.updateCurrentVerse(verse: currentVerse);
+          }
+        });
 
-            Verse previousVerse = mainProvider.currentVerse == null
-                ? mainProvider.verses.first
-                : mainProvider.currentVerse!;
-
-            if (currentVerse.book != previousVerse.book) {
-              mainProvider.updateCurrentVerse(verse: currentVerse);
-            }
-          },
-        );
-        await FetchVerses.execute(mainProvider: mainProvider).then(
-              (_) async {
-            await FetchBooks.execute(mainProvider: mainProvider)
-                .then((_) => setState(() {
+        await FetchVerses.execute(mainProvider: mainProvider).then((_) async {
+          await FetchBooks.execute(mainProvider: mainProvider).then((_) {
+            setState(() {
               _loading = false;
-            }));
-          },
-        );
-        // Read the last index and scroll to it
-        await ReadLastIndex.execute().then(
-              (index) {
-            if (index != null) {
-              mainProvider.scrollToIndex(index: index);
-            }
-          },
-        );
+            });
+          });
+        });
+
+        await ReadLastIndex.execute().then((index) {
+          if (index != null) {
+            mainProvider.scrollToIndex(index: index);
+          }
+        });
       },
     );
-    super.initState();
   }
-  // Process selected verses to create a formatted string
+
   String formattedSelectedVerses({required List<Verse> verses}) {
     String result = verses
         .map((e) => " [${e.book} ${e.chapter}:${e.verse}] ${e.text.trim()}")
@@ -86,20 +74,29 @@ class _HomePageState extends State<HomePage> {
     return "$result [Ancien BLS 1910 Pro]";
   }
 
+  @override
   Widget build(BuildContext context) {
+    _checkLogin(context);
     return Consumer<MainProvider>(builder: (context, mainProvider, child) {
-      // Récupération des données du provider
       List<Verse> verses = mainProvider.verses;
       Verse? currentVerse = mainProvider.currentVerse;
       bool isSelected = mainProvider.selectedVerses.isNotEmpty;
-      bool isLoading = mainProvider.isLoading; // Vérification de l'état de chargement
+      bool isLoading = mainProvider.isLoading;
 
-      // Ajout de vérifications de taille pour la liste
       if (_loading) {
         return Center(child: CircularProgressIndicator());
       }
       if (verses.isEmpty) {
-        return Center(child: Text('Aucun verset disponible', style: TextStyle(color: Colors.black, fontSize: 18),));
+        return Center(
+          child: Text(
+            'Aucun verset trouvé',
+            style: TextStyle(
+                color: Colors.blueGrey,
+                fontSize: 18,
+                decoration: TextDecoration.none
+            ),
+          ),
+        );
       }
       return Scaffold(
         appBar: AppBar(
@@ -126,12 +123,8 @@ class _HomePageState extends State<HomePage> {
             if (isSelected)
               IconButton(
                 onPressed: () async {
-                  // Copier dans le presse-papiers
-                  String string = formattedSelectedVerses(
-                      verses: mainProvider.selectedVerses);
-                  await FlutterClipboard.copy(string).then(
-                        (_) => mainProvider.clearSelectedVerses(),
-                  );
+                  String string = formattedSelectedVerses(verses: mainProvider.selectedVerses);
+                  await FlutterClipboard.copy(string).then((_) => mainProvider.clearSelectedVerses());
                 },
                 icon: const Icon(Icons.copy_rounded),
               ),
@@ -145,21 +138,55 @@ class _HomePageState extends State<HomePage> {
                 },
                 icon: const Icon(Icons.search_rounded),
               ),
+            IconButton(
+              icon: Icon(Icons.text_fields),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: Text('Ajuster la taille de police'),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Slider(
+                            value: mainProvider.fontSize,
+                            min: 10,
+                            max: 30,
+                            divisions: 20,
+                            label: mainProvider.fontSize.round().toString(),
+                            onChanged: (value) {
+                              mainProvider.updateFontSize(value);
+                            },
+                          ),
+                          Text('Taille actuelle : ${mainProvider.fontSize.round()}'),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text('Fermer'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
           ],
         ),
-        body: isLoading // Si c'est en train de charger
-            ? Center(child: CircularProgressIndicator()) // Affiche le loader
-            : ScrollablePositionedList.builder( // Sinon affiche la liste
+        body: isLoading
+            ? Center(child: CircularProgressIndicator())
+            : ScrollablePositionedList.builder(
           itemCount: verses.length,
           itemBuilder: (context, index) {
             Verse verse = verses[index];
-            return VerseWidget(verse: verse, index: index);
+            return VerseWidget(verse: verse, index: index, fontSize: mainProvider.fontSize);
           },
           itemScrollController: mainProvider.itemScrollController,
           itemPositionsListener: mainProvider.itemPositionsListener,
         ),
-        // Affichage du FloatingActionButton seulement quand isLoading est false
-        floatingActionButton: !isLoading // Si ce n'est pas en train de charger
+        floatingActionButton: !isLoading
             ? FloatingActionButton(
           backgroundColor: Colors.transparent,
           onPressed: () {
@@ -178,8 +205,15 @@ class _HomePageState extends State<HomePage> {
             size: 35,
           ),
         )
-            : null, // Pas de bouton si isLoading est true
+            : null,
       );
     });
+  }
+
+  void _checkLogin(BuildContext context) async {
+    final isLoggedIn = await AuthHelper.checkLoginStatus();
+    if (!isLoggedIn) {
+      Get.offAllNamed('/LoginPage');
+    }
   }
 }

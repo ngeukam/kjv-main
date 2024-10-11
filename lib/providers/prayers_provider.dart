@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import '../services/fetch_prayers.dart';
+import 'package:BibleEngama/models/prayer.dart'; // Importez le modèle
 
 class PrayerProvider with ChangeNotifier {
-  List _prayers = [];
+  List<PrayerModel> _prayers = [];
   bool _loading = true;
 
-  List get prayers => _prayers;
+  List<PrayerModel> get prayers => _prayers;
   bool get loading => _loading;
 
   final FetchPrayers _prayerService = FetchPrayers();
@@ -16,7 +17,8 @@ class PrayerProvider with ChangeNotifier {
 
   Future<void> fetchPrayers() async {
     try {
-      _prayers = await _prayerService.fetchPrayers();
+      final List<dynamic> jsonPrayers = await _prayerService.fetchPrayers();
+      _prayers = jsonPrayers.map((json) => PrayerModel.fromJson(json)).toList();
     } catch (e) {
       print(e);
     } finally {

@@ -19,6 +19,10 @@ class NewBlsMainProvider extends ChangeNotifier {
   // Variable to manage loading state
   bool isLoading = true;
 
+
+  double _fontSize = 16.0; // Taille de police par défaut
+  double get fontSize => _fontSize;
+
   // Method to set loading state
   void setLoading(bool value) {
     isLoading = value;
@@ -73,6 +77,12 @@ class NewBlsMainProvider extends ChangeNotifier {
   // Method to clear the selected Verse list and notify listeners
   void clearSelectedVerses() {
     selectedVerses.clear();
+    notifyListeners();
+  }
+
+  // Méthode pour mettre à jour la taille de police
+  void updateFontSize(double newSize) {
+    _fontSize = newSize;
     notifyListeners();
   }
 }

@@ -2,17 +2,16 @@ import 'package:BibleEngama/pages/newbls_book_page.dart';
 import 'package:BibleEngama/services/newbls_fetch_books.dart';
 import 'package:BibleEngama/services/newbls_fetch_verses.dart';
 import 'package:BibleEngama/services/save_current_index.dart';
+import 'package:BibleEngama/utils/auth_helper.dart';
 import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'package:BibleEngama/models/verse.dart';
-import 'package:BibleEngama/pages/books_page.dart';
 import 'package:BibleEngama/providers/newbls_main_provider.dart';
 import 'package:BibleEngama/widgets/verse_widget.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
 import '../services/read_last_index.dart';
 import 'search_page.dart';
 
@@ -25,38 +24,36 @@ class NewblsHomePage extends StatefulWidget {
 
 class _NewblsHomePageState extends State<NewblsHomePage> {
   bool _loading = true;
-  bool _isDataLoaded = false;
+
   @override
   void initState() {
-    // We will resume to the last position the user was
-    // Delayed execution to allow the UI to build before scrolling
+    super.initState();
     Future.delayed(
       const Duration(milliseconds: 100),
           () async {
         NewBlsMainProvider newBlsMainProvider = Provider.of<NewBlsMainProvider>(context, listen: false);
-        newBlsMainProvider.itemPositionsListener.itemPositions.addListener(
-              () {
-            int index = newBlsMainProvider.itemPositionsListener.itemPositions.value.last.index;
+        newBlsMainProvider.itemPositionsListener.itemPositions.addListener(() {
+          int index = newBlsMainProvider.itemPositionsListener.itemPositions.value.last.index;
 
-            SaveCurrentIndex.execute(
-                index: newBlsMainProvider.itemPositionsListener.itemPositions.value.first.index
-            );
+          SaveCurrentIndex.execute(
+              index: newBlsMainProvider.itemPositionsListener.itemPositions.value.first.index
+          );
 
-            Verse currentVerse = newBlsMainProvider.verses[index];
+          Verse currentVerse = newBlsMainProvider.verses[index];
 
-            if (newBlsMainProvider.currentVerse == null) {
-              newBlsMainProvider.updateCurrentVerse(verse: newBlsMainProvider.verses.first);
-            }
+          if (newBlsMainProvider.currentVerse == null) {
+            newBlsMainProvider.updateCurrentVerse(verse: newBlsMainProvider.verses.first);
+          }
 
-            Verse previousVerse = newBlsMainProvider.currentVerse == null
-                ? newBlsMainProvider.verses.first
-                : newBlsMainProvider.currentVerse!;
+          Verse previousVerse = newBlsMainProvider.currentVerse == null
+              ? newBlsMainProvider.verses.first
+              : newBlsMainProvider.currentVerse!;
 
-            if (currentVerse.book != previousVerse.book) {
-              newBlsMainProvider.updateCurrentVerse(verse: currentVerse);
-            }
-          },
-        );
+          if (currentVerse.book != previousVerse.book) {
+            newBlsMainProvider.updateCurrentVerse(verse: currentVerse);
+          }
+        });
+
         await NewBlsFetchVerses.execute(newBlsMainProvider: newBlsMainProvider).then(
               (_) async {
             await NewBlsFetchBooks.execute(newBlsMainProvider: newBlsMainProvider)
@@ -65,41 +62,46 @@ class _NewblsHomePageState extends State<NewblsHomePage> {
             }));
           },
         );
-        // Read the last index and scroll to it
-        await ReadLastIndex.execute().then(
-              (index) {
-            if (index != null) {
-              newBlsMainProvider.scrollToIndex(index: index);
-            }
-          },
-        );
+
+        await ReadLastIndex.execute().then((index) {
+          if (index != null) {
+            newBlsMainProvider.scrollToIndex(index: index);
+          }
+        });
       },
     );
-    super.initState();
   }
-  // Process selected verses to create a formatted string
+
   String formattedSelectedVerses({required List<Verse> verses}) {
     String result = verses
         .map((e) => " [${e.book} ${e.chapter}:${e.verse}] ${e.text.trim()}")
         .join();
-
     return "$result [Nouveau BLS 1910 Pro]";
   }
 
+  @override
   Widget build(BuildContext context) {
-    return Consumer<NewBlsMainProvider>(builder: (context, mainProvider, child) {
-      // Récupération des données du provider
-      List<Verse> verses = mainProvider.verses;
-      Verse? currentVerse = mainProvider.currentVerse;
-      bool isSelected = mainProvider.selectedVerses.isNotEmpty;
-      bool isLoading = mainProvider.isLoading; // Vérification de l'état de chargement
+    _checkLogin(context); // Vérification de connexion
+    return Consumer<NewBlsMainProvider>(builder: (context, newBlsMainProvider, child) {
+      List<Verse> verses = newBlsMainProvider.verses;
+      Verse? currentVerse = newBlsMainProvider.currentVerse;
+      bool isSelected = newBlsMainProvider.selectedVerses.isNotEmpty;
+      bool isLoading = newBlsMainProvider.isLoading;
 
-      // Ajout de vérifications de taille pour la liste
       if (_loading) {
         return Center(child: CircularProgressIndicator());
       }
       if (verses.isEmpty) {
-        return Center(child: Text('Aucun verset disponible', style: TextStyle(color: Colors.black, fontSize: 18),));
+        return Center(
+          child: Text(
+            'Aucun verset trouvé',
+            style: TextStyle(
+              color: Colors.blueGrey,
+              fontSize: 18,
+              decoration: TextDecoration.none,
+            ),
+          ),
+        );
       }
 
       return Scaffold(
@@ -127,11 +129,9 @@ class _NewblsHomePageState extends State<NewblsHomePage> {
             if (isSelected)
               IconButton(
                 onPressed: () async {
-                  // Copier dans le presse-papiers
-                  String string = formattedSelectedVerses(
-                      verses: mainProvider.selectedVerses);
+                  String string = formattedSelectedVerses(verses: newBlsMainProvider.selectedVerses);
                   await FlutterClipboard.copy(string).then(
-                        (_) => mainProvider.clearSelectedVerses(),
+                        (_) => newBlsMainProvider.clearSelectedVerses(),
                   );
                 },
                 icon: const Icon(Icons.copy_rounded),
@@ -146,21 +146,63 @@ class _NewblsHomePageState extends State<NewblsHomePage> {
                 },
                 icon: const Icon(Icons.search_rounded),
               ),
+            // Ajouter un bouton pour ajuster la taille de la police
+            IconButton(
+              icon: const Icon(Icons.text_fields),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    double newFontSize = newBlsMainProvider.fontSize;
+                    return AlertDialog(
+                      title: Text('Changer la taille de la police'),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Slider(
+                            value: newFontSize,
+                            min: 10,
+                            max: 30,
+                            divisions: 20,
+                            label: newFontSize.round().toString(),
+                            onChanged: (value) {
+                              newFontSize = value;
+                            },
+                          ),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            newBlsMainProvider.updateFontSize(newFontSize);
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('OK'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
           ],
         ),
-        body: isLoading // Si c'est en train de charger
-            ? Center(child: CircularProgressIndicator()) // Affiche le loader
-            : ScrollablePositionedList.builder( // Sinon affiche la liste
+        body: isLoading
+            ? Center(child: CircularProgressIndicator())
+            : ScrollablePositionedList.builder(
           itemCount: verses.length,
           itemBuilder: (context, index) {
             Verse verse = verses[index];
-            return VerseWidget(verse: verse, index: index);
+            return VerseWidget(
+              verse: verse,
+              index: index,
+              fontSize: newBlsMainProvider.fontSize, // Passer la taille de police
+            );
           },
-          itemScrollController: mainProvider.itemScrollController,
-          itemPositionsListener: mainProvider.itemPositionsListener,
+          itemScrollController: newBlsMainProvider.itemScrollController,
+          itemPositionsListener: newBlsMainProvider.itemPositionsListener,
         ),
-        // Affichage du FloatingActionButton seulement quand isLoading est false
-        floatingActionButton: !isLoading // Si ce n'est pas en train de charger
+        floatingActionButton: !isLoading
             ? FloatingActionButton(
           backgroundColor: Colors.transparent,
           onPressed: () {
@@ -179,8 +221,15 @@ class _NewblsHomePageState extends State<NewblsHomePage> {
             size: 35,
           ),
         )
-            : null, // Pas de bouton si isLoading est true
+            : null,
       );
     });
+  }
+
+  void _checkLogin(BuildContext context) async {
+    final isLoggedIn = await AuthHelper.checkLoginStatus();
+    if (!isLoggedIn) {
+      Get.offAllNamed('/LoginPage'); // Redirige vers la page de connexion
+    }
   }
 }

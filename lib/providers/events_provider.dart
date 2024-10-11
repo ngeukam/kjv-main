@@ -1,16 +1,17 @@
-import 'package:BibleEngama/services/fetch_events.dart';
 import 'package:flutter/material.dart';
+import 'package:BibleEngama/services/fetch_events.dart';
+import '../models/event.dart'; // Importez le modèle
 
 class EventProvider with ChangeNotifier {
-  List _events = [];
-  List _pastEvents = [];
+  List<EventModel> _events = [];
+  List<EventModel> _pastEvents = [];
   bool _loading = true;
 
-  List get events => _events;
-  List get pastEvents => _pastEvents;
+  List<EventModel> get events => _events;
+  List<EventModel> get pastEvents => _pastEvents;
   bool get loading => _loading;
 
-  FetchEvents _eventService = FetchEvents();
+  final FetchEvents _eventService = FetchEvents();
 
   EventProvider() {
     fetchEvents();
@@ -18,18 +19,17 @@ class EventProvider with ChangeNotifier {
 
   Future<void> fetchEvents() async {
     try {
-      List events = await _eventService.fetchEvents();
+      List<dynamic> events = await _eventService.fetchEvents();
+
       DateTime now = DateTime.now();
 
-      _events = events.where((event) {
-        DateTime eventDate = DateTime.parse(event['date']);
-        return eventDate.isAfter(now); // Événements à venir
-      }).toList();
+      _events = events.map((event) => EventModel.fromJson(event))
+          .where((event) => event.date.isAfter(now)) // Événements à venir
+          .toList();
 
-      _pastEvents = events.where((event) {
-        DateTime eventDate = DateTime.parse(event['date']);
-        return eventDate.isBefore(now); // Événements passés
-      }).toList();
+      _pastEvents = events.map((event) => EventModel.fromJson(event))
+          .where((event) => event.date.isBefore(now)) // Événements passés
+          .toList();
 
     } catch (e) {
       print(e.toString());

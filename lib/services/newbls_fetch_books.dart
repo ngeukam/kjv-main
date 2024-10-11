@@ -1,19 +1,29 @@
 import 'package:BibleEngama/models/book.dart';
 import 'package:BibleEngama/models/chapter.dart';
-import 'package:BibleEngama/providers/main_provider.dart';
 import 'package:BibleEngama/models/verse.dart';
-
 import '../providers/newbls_main_provider.dart';
 
 // Class repsonsible for fetching books based on the provided verses
-
 class NewBlsFetchBooks {
+  static final List<String> bookOrder = [
+    "Matthieu", "Marc", "Luc", "Jean", "Actes", "Romains", "1 Corinthiens",
+    "2 Corinthiens", "Galates", "Éphésiens", "Philippiens", "Colossiens",
+    "1 Thessaloniciens", "2 Thessaloniciens", "1 Timothée", "2 Timothée",
+    "Tite", "Philémon", "Hébreux", "Jacques", "1 Pierre", "2 Pierre",
+    "1 Jean", "2 Jean", "3 Jean", "Jude", "Apocalypse",];
   // Static method to execute the fetching process
   static Future<void> execute({required NewBlsMainProvider newBlsMainProvider}) async {
     List<Verse> verses = newBlsMainProvider.verses;
 
     // Extract unique book titles from the list of verses
     List<String> bookTitles = verses.map((e) => e.book).toSet().toList();
+
+    // Trier les titres de livres selon l'ordre défini dans bookOrder
+    bookTitles.sort((a, b) {
+      int indexA = bookOrder.indexOf(a);
+      int indexB = bookOrder.indexOf(b);
+      return indexA.compareTo(indexB);
+    });
 
     // Iterate through each unique book title to organize chapters and verses
     for (var bookTitle in bookTitles) {

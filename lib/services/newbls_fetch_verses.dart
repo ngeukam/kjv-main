@@ -7,6 +7,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 // Class responsible for fetching verses from a JSON file
 
 class NewBlsFetchVerses {
+  static final List<String> bookOrder = [
+    "Matthieu", "Marc", "Luc", "Jean", "Actes", "Romains", "1 Corinthiens",
+    "2 Corinthiens", "Galates", "Éphésiens", "Philippiens", "Colossiens",
+    "1 Thessaloniciens", "2 Thessaloniciens", "1 Timothée", "2 Timothée",
+    "Tite", "Philémon", "Hébreux", "Jacques", "1 Pierre", "2 Pierre",
+    "1 Jean", "2 Jean", "3 Jean", "Jude", "Apocalypse",];
   // Static method to execute the fetching process
   static Future<void> execute({required NewBlsMainProvider newBlsMainProvider}) async {
     final prefs = await SharedPreferences.getInstance();
@@ -25,10 +31,27 @@ class NewBlsFetchVerses {
         // Decode the JSON string into a List of dynamic objects
         List<dynamic> jsonList = json.decode(response.body);
 
-        // Loop through each JSON object, then convert it to a Verse, and add it to the provider's list
+        List<Verse> verses = [];
         for (var json in jsonList) {
           Verse verse = Verse.fromJson(json);
-          // Vérifiez si le verset existe déjà avant de l'ajouter
+          verses.add(verse);
+        }
+
+        // Trier les versets avant de les ajouter au provider
+        verses.sort((a, b) {
+          int bookIndexA = bookOrder.indexOf(a.book);
+          int bookIndexB = bookOrder.indexOf(b.book);
+
+          if (bookIndexA == bookIndexB) {
+            if (a.chapter == b.chapter) {
+              return a.verse.compareTo(b.verse);
+            }
+            return a.chapter.compareTo(b.chapter);
+          }
+          return bookIndexA.compareTo(bookIndexB);
+        });
+        newBlsMainProvider.verses.clear();
+        for (var verse in verses) {
           if (!newBlsMainProvider.verses.contains(verse)) {
             newBlsMainProvider.addVerse(verse: verse);
           }

@@ -1,34 +1,30 @@
+import 'package:BibleEngama/utils/auth_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import '../providers/events_provider.dart';
+import '../models/event.dart'; // Importez le modèle
 
 class EventsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    _checkLogin(context); // Vérification de connexion
     return ChangeNotifierProvider(
       create: (_) => EventProvider(), // Injecter le provider
       child: DefaultTabController(
         length: 2,
         child: Scaffold(
           appBar: AppBar(
-            title: Text('Evénements', style: TextStyle(color: Colors.white)),
-            iconTheme: IconThemeData(
-              color: Colors.white, // Couleur de la flèche de retour en blanc
-            ),
+            title: Text('Événements', style: TextStyle(color: Colors.white)),
+            iconTheme: IconThemeData(color: Colors.white),
             backgroundColor: Colors.blue,
             bottom: TabBar(
               indicatorColor: Colors.white,
               indicatorWeight: 4.0,
               labelColor: Colors.white,
               unselectedLabelColor: Colors.white54,
-              labelStyle: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold, // Style de texte pour l'onglet actif
-              ),
-              unselectedLabelStyle: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.normal, // Style de texte pour les onglets inactifs
-              ),
+              labelStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              unselectedLabelStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.normal),
               tabs: [
                 Tab(text: 'À venir'),
                 Tab(text: 'Passés'),
@@ -46,7 +42,7 @@ class EventsPage extends StatelessWidget {
                 ),
               ),
               Container(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.lightBlue.withOpacity(0.5),
               ),
               Center(
                 child: Container(
@@ -74,12 +70,12 @@ class EventsPage extends StatelessWidget {
     );
   }
 
-  Widget buildEventList(List events, {bool isPast = false}) {
+  Widget buildEventList(List<EventModel> events, {bool isPast = false}) {
     if (events.isEmpty) {
       return Center(
         child: Text(
           isPast ? 'Aucun événement passé disponible.' : 'Aucun événement à venir.',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.white, fontSize: 18, decoration: TextDecoration.none),
         ),
       );
     }
@@ -88,17 +84,16 @@ class EventsPage extends StatelessWidget {
       itemCount: events.length,
       itemBuilder: (context, index) {
         var event = events[index];
-        DateTime eventDate = DateTime.parse(event['date']);
-        String day = eventDate.day.toString();
-        String month = getAbbreviatedMonth(eventDate.month);
-        String year = eventDate.year.toString();
 
-        return eventCard(day, month, year, event['title'], event['time'], event['description']);
+        String day = event.date.day.toString();
+        String month = getAbbreviatedMonth(event.date.month);
+        String year = event.date.year.toString();
+
+        return eventCard(day, month, year, event.title, event.time, event.description);
       },
     );
   }
 
-  // Fonction pour obtenir le mois abrégé
   String getAbbreviatedMonth(int month) {
     const monthNames = [
       "Jan", "Feb", "Mar", "Avr", "May", "Jun",
@@ -121,8 +116,8 @@ class EventsPage extends StatelessWidget {
             Column(
               children: [
                 Text(day ?? 'N/A', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                Text(month ?? 'N/A', style: TextStyle(color: Colors.white70, fontSize: 18)),
-                Text(year ?? 'N/A', style: TextStyle(color: Colors.white70, fontSize: 18)),
+                Text(month ?? 'N/A', style: TextStyle(color: Colors.white, fontSize: 18)),
+                Text(year ?? 'N/A', style: TextStyle(color: Colors.white, fontSize: 18)),
               ],
             ),
             SizedBox(width: 20),
@@ -132,9 +127,9 @@ class EventsPage extends StatelessWidget {
                 children: [
                   Text(title ?? 'Titre inconnu', style: TextStyle(color: Colors.cyanAccent, fontSize: 18, fontWeight: FontWeight.bold)),
                   SizedBox(height: 4),
-                  Text(description ?? 'Pas de description', style: TextStyle(color: Colors.white70)),
+                  Text(description ?? 'Pas de description', style: TextStyle(color: Colors.white)),
                   SizedBox(height: 4),
-                  Text(time ?? 'Heure inconnue', style: TextStyle(color: Colors.white70)),
+                  Text(time ?? 'Heure inconnue', style: TextStyle(color: Colors.white)),
                 ],
               ),
             ),
@@ -142,5 +137,12 @@ class EventsPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _checkLogin(BuildContext context) async {
+    final isLoggedIn = await AuthHelper.checkLoginStatus();
+    if (!isLoggedIn) {
+      Get.offAllNamed('/LoginPage'); // Redirige vers la page de connexion
+    }
   }
 }

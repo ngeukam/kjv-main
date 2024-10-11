@@ -15,10 +15,9 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   final LoginRegisterService apiService = LoginRegisterService();
 
-  bool _obscurePassword = true; // Variable pour masquer le mot de passe
-  bool _loading = false; // État de chargement
+  bool _obscurePassword = true;
+  bool _loading = false;
 
-  // Fonction pour afficher les messages toast
   void showToast(String message) {
     Fluttertoast.showToast(
       msg: message,
@@ -31,13 +30,14 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // Fonction pour gérer le processus de connexion
   void handleLogin() async {
-    setState(() {
-      _loading = true; // Début du chargement
-    });
-
+    if (emailController.text.isEmpty || passwordController.text.isEmpty ) {
+      showToast("Tous les champs sont obligatoires.");
+    }else{
     try {
+      setState(() {
+        _loading = true;
+      });
       final response = await apiService.login(
         emailController.text,
         passwordController.text,
@@ -59,10 +59,10 @@ class _LoginPageState extends State<LoginPage> {
       showToast("Erreur de connexion. Vérifiez vos identifiants.");
     } finally {
       setState(() {
-        _loading = false; // Fin du chargement, même en cas d'erreur
+        _loading = false;
       });
     }
-  }
+  } }
 
   @override
   Widget build(BuildContext context) {
@@ -70,145 +70,137 @@ class _LoginPageState extends State<LoginPage> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Image de fond
           Image.asset(
             'assets/blue-fond.jpg',
             fit: BoxFit.cover,
           ),
-          // Couche semi-transparente
           Container(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.grey.withOpacity(0.4),
           ),
-          // Formulaire de connexion
           Center(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Logo
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundImage: AssetImage('assets/logo.png'), // Remplacez par le chemin de votre logo
-                    backgroundColor: Colors.transparent,
-                  ),
-                  SizedBox(height: 20), // Espace sous le logo
-                  // Titre
-                  Text(
-                    'Se Connecter',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  // Limiter la largeur des champs à 300
-                  SizedBox(
-                    width: 300, // Largeur fixe de 300
-                    child: Column(
-                      children: [
-                        // Champ Email
-                        TextField(
-                          controller: emailController,
-                          style: TextStyle(color: Colors.white), // Texte en blanc
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.email, color: Colors.white),
-                            labelText: 'E-mail',
-                            labelStyle: TextStyle(color: Colors.white),
-                            filled: true,
-                            fillColor: Colors.white.withOpacity(0.2),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        // Champ Mot de passe
-                        TextField(
-                          controller: passwordController,
-                          style: TextStyle(color: Colors.white), // Texte en blanc
-                          obscureText: _obscurePassword,
-                          decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.lock, color: Colors.white),
-                            labelText: 'Mot de passe',
-                            labelStyle: TextStyle(color: Colors.white),
-                            filled: true,
-                            fillColor: Colors.white.withOpacity(0.2),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide.none,
-                            ),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                                color: Colors.white,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword; // Bascule l'état
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        // Lien Mot de passe oublié
-                        GestureDetector(
-                          onTap: () {
-                            showToast("Fonctionnalité à implémenter !");
-                          },
-                          child: Text(
-                            'Mot de passe oublié ?',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        // Lien S'enregistrer
-                        GestureDetector(
-                          onTap: () {
-                            Get.to(() => RegisterPage(), transition: Transition.rightToLeft);
-                          },
-                          child: Text(
-                            'Pas de compte ? S\'enregistrer',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  // Bouton Se connecter
-                  _loading
-                      ? CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  )
-                      : ElevatedButton(
-                    onPressed: handleLogin,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red[200], // Couleur du bouton
-                      padding: EdgeInsets.symmetric(horizontal: 100, vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+            child: SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: 400), // Adjust as needed
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 40,
+                        backgroundImage: AssetImage('assets/logo.png'),
+                        backgroundColor: Colors.transparent,
                       ),
-                    ),
-                    child: Text(
-                      'Se Connecter',
-                      style: TextStyle(fontSize: 18, color: Colors.white),
-                    ),
+                      SizedBox(height: 20),
+                      Text(
+                        'Se Connecter',
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      SizedBox(
+                        width: 300,
+                        child: Column(
+                          children: [
+                            TextField(
+                              controller: emailController,
+                              style: TextStyle(color: Colors.white),
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: InputDecoration(
+                                prefixIcon: Icon(Icons.email, color: Colors.white),
+                                labelText: 'E-mail',
+                                labelStyle: TextStyle(color: Colors.white),
+                                filled: true,
+                                fillColor: Colors.grey.withOpacity(0.3),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            TextField(
+                              controller: passwordController,
+                              style: TextStyle(color: Colors.white),
+                              obscureText: _obscurePassword,
+                              decoration: InputDecoration(
+                                prefixIcon: Icon(Icons.lock, color: Colors.white),
+                                labelText: 'Mot de passe',
+                                labelStyle: TextStyle(color: Colors.white),
+                                filled: true,
+                                fillColor: Colors.grey.withOpacity(0.4),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide.none,
+                                ),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscurePassword = !_obscurePassword;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            GestureDetector(
+                              onTap: () {
+                                showToast("Fonctionnalité à implémenter !");
+                              },
+                              child: Text(
+                                'Mot de passe oublié ?',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            GestureDetector(
+                              onTap: () {
+                                Get.to(() => RegisterPage(), transition: Transition.rightToLeft);
+                              },
+                              child: Text(
+                                'Pas de compte ? S\'enregistrer',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      _loading
+                          ? CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      )
+                          : ElevatedButton(
+                        onPressed: handleLogin,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red[200],
+                          padding: EdgeInsets.symmetric(horizontal: 100, vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          'Se Connecter',
+                          style: TextStyle(fontSize: 18, color: Colors.white),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),

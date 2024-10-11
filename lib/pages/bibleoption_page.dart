@@ -1,6 +1,8 @@
+import 'package:BibleEngama/pages/form_page.dart';
 import 'package:BibleEngama/pages/gallery.dart';
 import 'package:BibleEngama/pages/newbls_home_page.dart';
 import 'package:BibleEngama/pages/prayer_page.dart';
+import 'package:BibleEngama/utils/auth_helper.dart';
 import 'package:BibleEngama/utils/custom_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -15,6 +17,7 @@ class BibleOptionsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    _checkLogin(context); // Vérification de connexion
     return Scaffold(
       drawer: CustomDrawer(),
       body: Stack(
@@ -25,7 +28,7 @@ class BibleOptionsPage extends StatelessWidget {
             fit: BoxFit.cover,
           ),
           Container(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.lightBlue.withOpacity(0.5),
           ),
           SingleChildScrollView(
             child: Padding(
@@ -56,7 +59,9 @@ class BibleOptionsPage extends StatelessWidget {
                       _buildGridButton(
                         icon: FontAwesomeIcons.list,
                         label: 'Guide thématique',
-                        onPressed: () {},
+                        onPressed: () {
+                          Get.to(() => FormPage(), transition: Transition.leftToRight);
+                        },
                       ),
                       _buildGridButton(
                         icon: FontAwesomeIcons.bookBible,
@@ -132,7 +137,7 @@ class BibleOptionsPage extends StatelessWidget {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.grey.withOpacity(0.5),
+        backgroundColor: Colors.grey.withOpacity(0.4),
         padding: const EdgeInsets.all(8.0),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
@@ -151,5 +156,11 @@ class BibleOptionsPage extends StatelessWidget {
         ],
       ),
     );
+  }
+  void _checkLogin(BuildContext context) async {
+    final isLoggedIn = await AuthHelper.checkLoginStatus();
+    if (!isLoggedIn) {
+      Get.offAllNamed('/LoginPage'); // Redirige vers la page de connexion
+    }
   }
 }

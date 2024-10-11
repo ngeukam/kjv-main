@@ -18,7 +18,7 @@ class CustomDrawer extends StatelessWidget {
           children: [
             DrawerHeader(
               decoration: const BoxDecoration(
-                color: Colors.blue,
+                color: Colors.lightBlue,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
